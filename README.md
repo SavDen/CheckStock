@@ -1,5 +1,7 @@
 # CheckStock
 
+[![PostgreSQL integration tests](https://github.com/SavDen/CheckStock/actions/workflows/tests.yml/badge.svg)](https://github.com/SavDen/CheckStock/actions/workflows/tests.yml)
+
 Небольшой веб-прототип складского учёта для тестового задания «Где сейчас товар?». Один магазин, несколько складов фулфилмента, отдельный учёт резервов и товара в пути.
 
 **Стек:** Python 3.12 · FastAPI · PostgreSQL · SQLAlchemy 2 · Alembic. Интерфейс — HTML/CSS/JavaScript, обслуживается самим FastAPI. Node.js для запуска не нужен. Шрифт с кириллицей хранится локально.
