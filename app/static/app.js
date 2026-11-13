@@ -22,6 +22,7 @@ function productHTML(p) { return `<div class="product-info"><span class="product
 function dateText(value) { return new Date(value).toLocaleString('ru-RU', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
 function toast(message) { const el = $('#toast'); el.textContent = message; el.hidden = false; clearTimeout(toast.timer); toast.timer = setTimeout(() => el.hidden = true, 4500); }
 async function api(path, method = 'GET', body, key) {
+  if (window.CheckStockDemo) return window.CheckStockDemo.request(path, method, body, key);
   let response;
   try { response = await fetch(path, {method, headers:{...(body !== undefined ? {'Content-Type':'application/json'} : {}), ...(key ? {'Idempotency-Key':key} : {})}, body:body !== undefined ? JSON.stringify(body) : undefined, signal:AbortSignal.timeout(15000)}); }
   catch { throw new Error('Нет ответа от сервера. Проверьте соединение и повторите: тот же запрос не спишет товар дважды.'); }
@@ -39,7 +40,7 @@ async function load({initial = false} = {}) {
   try {
     data = await api('/api/snapshot');
     $('#load-error').hidden = true;
-    $('#connection').className = 'connection online'; $('#connection').innerHTML = '<i></i>База подключена';
+    $('#connection').className = 'connection online'; $('#connection').innerHTML = window.CheckStockDemo ? '<i></i>Данные в браузере' : '<i></i>База подключена';
     $('#updated').textContent = 'Обновлено в ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
     render();
     if (initial) $('#view-root').classList.add('main-enter');
@@ -186,4 +187,14 @@ $('#view-root').addEventListener('change',event=>{
   if(event.target.id==='warehouse-filter'){warehouseFilter=event.target.value;render();}
   if(event.target.id==='show-archive'){showArchive=event.target.checked;render();}
 });
+if (window.CheckStockDemo) {
+  const resetDialog = $('#demo-reset-dialog');
+  $('#reset-demo').addEventListener('click', () => { resetDialog.returnValue = 'cancel'; resetDialog.showModal(); });
+  resetDialog.addEventListener('close', async () => {
+    if (resetDialog.returnValue !== 'reset') return;
+    try { await window.CheckStockDemo.reset(); await load(); toast('Восстановлены исходные демонстрационные данные'); }
+    catch (error) { toast(error.message); }
+  });
+  window.addEventListener('storage', event => { if (event.key === 'checkstock:pages-demo:v1') load(); });
+}
 route();load({initial:true});
